@@ -1,4 +1,6 @@
 from stock import Stock
+from utils.decorators import log_call , time_execution
+
 
 class Portfolio:
     def __init__(self):
@@ -21,13 +23,17 @@ class Portfolio:
                     self.stocks.remove(s)
                     break
         
-
+    @log_call
+    @time_execution                
     def total_value(self):
         total_sum = 0
         for s in self.stocks:
             total_sum += s.value()
         return total_sum
     
+
+    @time_execution
+    @log_call
     def get_all_stock(self):
         return [s.to_dict() for s in self.stocks]
 

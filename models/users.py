@@ -1,6 +1,11 @@
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .stocks import Stock
+    from .chat_history import ChatHistory
 
 
 class User(Base):

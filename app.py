@@ -4,6 +4,7 @@ from utils.decorators import log_call , time_execution
 from database import Base, engine, get_db
 from models.stocks import Stock
 from models.users import User
+from models.chat_history import ChatHistory
 
 app = FastAPI()
 

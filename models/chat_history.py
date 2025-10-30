@@ -2,6 +2,10 @@ from sqlalchemy import String, Integer, ForeignKey, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .users import User
 
 
 class ChatHistory(Base):

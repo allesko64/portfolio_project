@@ -1,18 +1,23 @@
 from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from utils.decorators import log_call , time_execution
-from database import Base, engine, get_db
+from app.database import Base, engine, get_db
 from models.stocks import Stock
 from models.users import User
 from models.chat_history import ChatHistory
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
-# Create tables if they don't exist yet (simple bootstrapping)
-Base.metadata.create_all(bind=engine)
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/ping")
-def ping():
+async def ping():
     return {"status" : "ok"}
 
 
@@ -20,8 +25,9 @@ def ping():
 
 @app.get("/portfolio")
 @log_call
-def list_portfolio(db: Session = Depends(get_db)):
-    stocks = db.query(Stock).all()
+async def list_portfolio(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Stock))
+    stocks = result.scalars().all()
     return [
         {
             "id": s.id,

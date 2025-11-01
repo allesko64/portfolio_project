@@ -8,7 +8,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # 2) Import your Base and models so Alembic can autogenerate diffs
-from database import Base  # Declarative Base
+from app.database import Base  # Declarative Base
 """Ensure models are imported so tables are registered on Base.metadata"""
 from models.users import User  # noqa: F401
 from models.stocks import Stock  # noqa: F401

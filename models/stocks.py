@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class Stock(Base):
     __tablename__ = "stocks"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer[1], primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     symbol: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     buy_price: Mapped[float | None] = mapped_column(Float, nullable=True)

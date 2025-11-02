@@ -3,22 +3,46 @@
 The backend is running with:
 - FastAPI app with async routes (`/ping`, `/portfolio`)
 - Async SQLAlchemy 2.0 using `sqlite+aiosqlite` and `AsyncSession`
-- Tables auto-created on startup via FastAPI lifespan handler
+- Schema managed by Alembic migrations (runtime Base.metadata.create_all disabled)
 - Models: `User`, `Stock`, `PredictionHistory`, `ChatHistory`
 - Alembic configured (sync URL) for migrations
 - Decorators (`log_call`, `time_execution`) compatible with async
 
-## Next Steps (Short-term)
+## Database migrations (Alembic)
 
-1) Database migrations (Alembic)
-- Create the initial migration and apply it:
+Alembic is the migration tool for SQLAlchemy. It versions your database schema so you can upgrade/downgrade safely and keep all environments in sync.
+
+### Workflow
+1) Edit models in `models/*.py`.
+2) Generate a migration from model changes:
 ```bash
-alembic revision --autogenerate -m "initial schema"
-alembic upgrade head
+uv run alembic revision --autogenerate -m "describe your change"
 ```
-- Commit the generated versions under `alembic/versions`.
+3) Review the generated script under `alembic/versions/`.
+4) Apply the migration:
+```bash
+uv run alembic upgrade head
+```
+5) Roll back if needed:
+```bash
+uv run alembic downgrade -1
+```
 
-2) Core CRUD APIs (async)
+### Useful commands
+```bash
+uv run alembic current     # show current DB revision
+uv run alembic history     # list migration history
+uv run alembic stamp head  # mark DB as up-to-date (no changes applied)
+```
+
+### Notes
+- Config: `alembic.ini` points to `sqlite:///./portfolio.db`.
+- `alembic/env.py` loads `Base` and all models and enables:
+  - `render_as_batch=True` (SQLite-friendly ALTER behavior)
+  - `compare_type=True` (detect column type changes)
+- Do not create tables at runtime; use Alembic migrations exclusively.
+
+<!-- 2) Core CRUD APIs (async)
 - Users:
   - POST /api/users
   - GET /api/users
@@ -31,9 +55,9 @@ alembic upgrade head
   - GET /api/portfolio/stock/{id}
   - PUT /api/portfolio/stock/{id}
   - DELETE /api/portfolio/stock/{id}
-- Use `AsyncSession` + `await db.execute(select(...))` and Pydantic schemas for I/O.
+- Use `AsyncSession` + `await db.execute(select(...))` and Pydantic schemas for I/O. -->
 
-3) CORS configuration
+<!-- 3) CORS configuration
 - Allow local frontend origin(s):
 ```python
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,9 +69,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-```
+``` -->
 
-4) Settings & environment
+<!-- 4) Settings & environment
 - Add `.env` (DB URL, CORS origins, API keys if needed).
 - Create `config.py` using `pydantic-settings` to load env.
 
@@ -64,15 +88,14 @@ pip install pytest pytest-asyncio httpx
 ## How to Run (Backend)
 
 ```bash
-python -m venv .venv
-. .venv/Scripts/activate     # Windows (PowerShell) or source .venv/bin/activate on Unix
-pip install fastapi uvicorn sqlalchemy aiosqlite alembic pydantic pydantic-settings
+# Install dependencies
+uv sync
 
 # Run DB migrations
-alembic upgrade head
+uv run alembic upgrade head
 
 # Start server
-python main.py
+uv run python main.py
 # App: http://127.0.0.1:8000  |  Docs: http://127.0.0.1:8000/docs
 ```
 
